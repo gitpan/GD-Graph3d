@@ -22,7 +22,7 @@ use GD::Graph::cylinder;
 use Carp;
 
 @GD::Graph::cylinder3d::ISA = qw( GD::Graph::cylinder );
-$GD::Graph::cylinder3d::VERSION = '0.61';
+$GD::Graph::cylinder3d::VERSION = '0.63';
 
 # Inherit everything from GD::Graph::cylinder
 

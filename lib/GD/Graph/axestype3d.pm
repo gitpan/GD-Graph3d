@@ -34,7 +34,7 @@ use GD::Graph::colour qw(:colours);
 use Carp;
 
 @GD::Graph::axestype3d::ISA = qw(GD::Graph::axestype);
-$GD::Graph::axestype3d::VERSION = '0.61';
+$GD::Graph::axestype3d::VERSION = '0.63';
 
 # Commented inheritance from GD::Graph::axestype unless otherwise noted.
 
@@ -699,7 +699,89 @@ sub draw_x_ticks_number
 # Inherit _get_bottom
 # Inherit val_to_pixel
 # Inherit setup_legend
-# Inherit draw_legend
+
+
+# [JW] Override draw_legend and reverse the drawing order
+# if cumulate is enabled so legend matches data on chart
+sub draw_legend
+{
+	my $self = shift;
+
+	return unless defined $self->{legend};
+
+	my $xl = $self->{lg_xs} + $self->{legend_spacing};
+	my $y  = $self->{lg_ys} + $self->{legend_spacing} - 1;
+
+	# If there's a frame, offset by the size and margin
+	$xl += $self->{legend_frame_margin} + $self->{legend_frame_size} if $self->{legend_frame_size};
+	$y += $self->{legend_frame_margin} + $self->{legend_frame_size} if $self->{legend_frame_size};
+
+	my $i = 0;
+	my $row = 1;
+	my $x = $xl;	# start position of current element
+	my @legends = @{$self->{legend}};
+	my $i_step = 1;
+	
+	# If we are working in cumulate mode, then reverse the drawing order
+	if( $self->{cumulate} ) {
+		@legends = reverse @legends;
+		$i = scalar(@legends);
+		$i = $self->{_data}->num_sets if $self->{_data}->num_sets < $i;
+		$i++;
+		$i_step = -1;
+	} # end if
+	
+	foreach my $legend (@legends)
+	{
+		$i += $i_step;
+
+		# Legend for Pie goes over first set, and all points
+		# Works in either direction
+		last if $i > $self->{_data}->num_sets;
+		last if $i < 1;
+
+		my $xe = $x;	# position within an element
+
+		next unless defined($legend) && $legend ne "";
+
+		$self->draw_legend_marker($i, $xe, $y);
+
+		$xe += $self->{legend_marker_width} + $self->{legend_spacing};
+		my $ys = int($y + $self->{lg_el_height}/2 - $self->{lgfh}/2);
+
+		$self->{gdta_legend}->set_text($legend);
+		$self->{gdta_legend}->draw($xe, $ys);
+
+		$x += $self->{lg_el_width};
+
+		if (++$row > $self->{lg_cols})
+		{
+			$row = 1;
+			$y += $self->{lg_el_height};
+			$x = $xl;
+		}
+	}
+	
+	# If there's a frame, draw it now
+	if( $self->{legend_frame_size} ) {
+		$x = $self->{lg_xs} + $self->{legend_spacing};
+		$y = $self->{lg_ys} + $self->{legend_spacing} - 1;
+		
+		for $i ( 0 .. $self->{legend_frame_size} - 1 ) {
+			$self->{graph}->rectangle(
+				$x + $i,
+				$y + $i, 
+				$x + $self->{lg_x_size} + 2 * $self->{legend_frame_margin} - $i - 1,
+				$y + $self->{lg_y_size} + 2 * $self->{legend_frame_margin} - $i - 1,
+				$self->{acci},
+			);
+		} # end for
+	} # end if
+	
+}
+
+
+
 # Inherit draw_legend_marker
 
 1;

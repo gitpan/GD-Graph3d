@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use strict;
 
 # For simplified test responses
 use Test;
@@ -28,7 +29,10 @@ use ExtUtils::MakeMaker qw( prompt );
 # How many test do we have?
 use vars qw( $test_count $export_format );
 
-BEGIN { $|=1; $test_count = 9; plan test => $test_count; }
+BEGIN { $|=1; $test_count = 10; plan test => $test_count; }
+
+# If '-save' is given on the command-line then don't delete the comparison images
+my $STORE = grep /^-?-save$/i, @ARGV;
 
 # Get user response whether to run visual test
 # (Would be nice to localize (localise? :-> ) this....
@@ -61,10 +65,10 @@ if( $res =~ /^n/i ) {
 #--------------------------------------------------#
 # Basic 3d bar graph                               #
 #--------------------------------------------------#
-$graph = new GD::Graph::bars3d();
+my $graph = new GD::Graph::bars3d();
 $export_format = $graph->export_format;
 
-@data = (
+my @data = (
            ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
            [ 1203,  3500,  3973,  2859,  3012,  3423,  1230]
         );
@@ -216,7 +220,7 @@ ok( compare( $graph->plot( \@data ), 'multiline.png' ) );
 #--------------------------------------------------#
 # 3d Lines with x-tick-number set                  #
 #--------------------------------------------------#
-$graph = new GD::Graph::lines();
+$graph = new GD::Graph::lines3d();
 
 @data = ( 
            [ 0 .. 24 ],
@@ -247,13 +251,11 @@ ok( compare( $graph->plot( \@data ), 'line-ticks.png' ) );
 
 # GD::Graph makes different images in versions 1.32 and 1.33 (and will in 1.34)
 my $GD_Graph_VERSION = $GD::Graph::VERSION;
-if( $GD_Graph_VERSION < 1.32 ) {
+if( ($GD_Graph_VERSION != 1.32)
+ && ($GD_Graph_VERSION != 1.33)
+) {
 	warn "The version of GD::Graph that you have, $GD_Graph_VERSION, has not been tested. It may produce images that are different than those provided. If the images meet your satisfaction, respond, 'y' when asked if they are the same.\n";
 	$GD_Graph_VERSION = 1.32;
-} # end if
-if( $GD_Graph_VERSION > 1.33 ) {
-	warn "The version of GD::Graph that you have, $GD_Graph_VERSION, has not been tested. It may produce images that are different than those provided. If the images meet your satisfaction, respond, 'y' when asked if they are the same.\n";
-	$GD_Graph_VERSION = 1.33;
 } # end if
 
 $graph = new GD::Graph::pie3d();
@@ -281,8 +283,40 @@ $graph->set(
 
 ok( compare( $graph->plot( \@data ), "pie100-$GD_Graph_VERSION.png" ) );
 
+#--------------------------------------------------#
+# Stacked bar chart with legend                    #
+#--------------------------------------------------#
+$graph = new GD::Graph::bars3d();
+
+@data = ( 
+           ["1".."7"],
+           [ 37,  25,   9,  10,   1,  30,  34],
+           [ 12,  25,  56,  23,  51,  12,   8],
+           [ 42,  25,  18,  32,   8,  13,  20],
+);
+
+$graph->set(
+    cumulate     => 1,
+    x_label      => 'Number',
+    y_label      => 'Usage',
+    title        => 'Total usage',
+    box_axis     => 0,
+    y_long_ticks => 1,
+	 legend_placement => 'RC',
+);
+
+$graph->set_legend( 'Red', 'Green', 'Blue' );
+
+ok( compare( $graph->plot( \@data ), 'stackbar-legend.png' ) );
+
+
 
 exit 0;
+
+##############################################################################
+#                                END OF TESTS                                #
+##############################################################################
+
 
 #
 # A convenience function to build a graph and compare it with
@@ -313,6 +347,8 @@ sub compare {
 	if( defined $f2 ) {
 		my $r = prompt( "Do the images '$file' and '$f2' look substantially similar?", 'n' );
 		print "\n";
+		# Now remove the file, unless in STORE mode
+		unlink $f2 unless $STORE;
 		return ( $r =~ /^y/i ) ? 1 : 0;
 		return 0;
 	} else {
@@ -332,9 +368,10 @@ sub _write {
 	# Get the base filename, insert -t and format and put in t/ folder 
 	($f) = fileparse( $f, '\..*' );
 	$f = File::Spec->catfile( $FindBin::RealBin, $f );
-
+	$f = "$f-t.$export_format";
+	
 	# Write out in whatever format GD prefers
-	open( FILE, ">$f-t.$export_format" ) || return undef;
+	open( FILE, ">$f" ) || return undef;
 	binmode FILE;
 	print FILE $g->$export_format;
 	close FILE;

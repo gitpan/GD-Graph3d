@@ -10,7 +10,7 @@ use GD::Graph::utils qw(:all);
 use GD::Graph::colour qw(:colours);
 
 use base qw/GD::Graph::bars3d/;
-$GD::Graph::cylinder::VERSION = '0.1';
+$GD::Graph::cylinder::VERSION = '0.63';
 
 my %Defaults = (
 	# Spacing between the bars

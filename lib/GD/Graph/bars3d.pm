@@ -20,17 +20,22 @@
 # 2000APR24 Fixed a lot of rendering bugs and added shading             JAW
 # 2000AUG21 Added 3d shading                                            JAW
 # 2000AUG24 Fixed shading on cycle_clrs option                          JAW
+# 06Dec2002 Fixed on-bar rendering with bars.pm draw_values              JW
 #==========================================================================
 package GD::Graph::bars3d;
 
 use strict;
 
 use GD::Graph::axestype3d;
+use GD::Graph::bars;
 use GD::Graph::utils qw(:all);
 use GD::Graph::colour qw(:colours);
 
 @GD::Graph::bars3d::ISA = qw(GD::Graph::axestype3d);
-$GD::Graph::bars3d::VERSION = '0.61';
+$GD::Graph::bars3d::VERSION = '0.63';
+
+use constant PI => 4 * atan2(1,1);
+
 
 my %Defaults = (
 	# Spacing between the bars
@@ -332,6 +337,13 @@ sub set_max_min {
 
 	return $self;
 } # end set_max_min
+
+
+# [JW] Just use the one in GD::Graph::bars
+sub draw_values
+{
+	return &GD::Graph::bars::draw_values( @_ );
+}
 
 
 1;
