@@ -10,7 +10,7 @@
 #           The package is now GD-Graph3d which us what people expect    JW
 #==========================================================================
 package GD::Graph3d;
-$GD::Graph3d::VERSION = '0.59';
+$GD::Graph3d::VERSION = '0.61';
 1;
 
 =head1 NAME
@@ -112,7 +112,7 @@ value for this option.
 
 =head1 VERSION
 
-0.59 (5 December 2001)
+0.60 (7 December 2001)
 
 =head1 INSTALLATION
 

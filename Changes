@@ -2,6 +2,12 @@ Revision history for Perl extension GD-Graph3d.
 
 See individual files for file-specific changes.
 
+0.61  16.Oct.2002
+	- Added support for h_bars (or rotate_graph) (Chia-liang Kao)
+	- Added a new cynlider.pm bar style (Chia-liang Kao)
+0.60  Dec 07 2001
+	- Fixed another bug with x_tick_number rendering - off by one tick.
+	  Sent patch to MVERB for same bug in GD::Graph::axestype.pm
 0.59  Dec 05 2001
 	- Fixed bug with x_tick_number
 0.58  Dec 05 2001

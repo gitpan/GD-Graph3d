@@ -30,7 +30,7 @@ use GD::Graph::utils qw(:all);
 use GD::Graph::colour qw(:colours);
 
 @GD::Graph::bars3d::ISA = qw(GD::Graph::axestype3d);
-$GD::Graph::bars3d::VERSION = '0.59';
+$GD::Graph::bars3d::VERSION = '0.61';
 
 my %Defaults = (
 	# Spacing between the bars
@@ -89,18 +89,20 @@ sub draw_data
 	my $zero = $self->{zeropoint};
 
 	my $i;
-	for $i (0 .. $self->{_data}->num_points()) {
+   my @iterate =  (0 .. $self->{_data}->num_points());
+   for $i ($self->{rotate_chart} ? reverse(@iterate) : @iterate) {
 		my ($xp, $t);
 		my $overwrite = 0;
 		$overwrite = $self->{overwrite} if defined $self->{overwrite};
 		
 		my $j;
-		for $j (1 .. $self->{_data}->num_sets()) {
+      my @iterate = (1 .. $self->{_data}->num_sets());
+      for $j (($self->{rotate_chart} && $self->{cumulate} == 0) ? reverse(@iterate) : @iterate) {
 			my $value = $self->{_data}->get_y( $j, $i );
 			next unless defined $value;
 
 			my $bottom = $self->_get_bottom($j, $i);
-				$value = $self->{_data}->get_y_cumulative($j, $i)
+         $value = $self->{_data}->get_y_cumulative($j, $i)
 				if ($self->{cumulate});
 
 			# Pick a data colour, calc shading colors too, if requested
@@ -141,21 +143,46 @@ sub draw_data
 
 			# calculate left and right of bar
 			my ($l, $r);
+         if ($self->{rotate_chart}) {
+            $l = $bottom;
+            ($r) = $self->val_to_pixel($i + 1, $value, $j);
+         }
+
 			if( (ref $self eq 'GD::Graph::mixed') || ($overwrite >= 1) )
 			{
-				$l = $xp - $self->{x_step}/2 + $bar_s + $x_offset;
-				$r = $xp + $self->{x_step}/2 - $bar_s + $x_offset;
+            if ($self->{rotate_chart}) {
+               $bottom = $t + $self->{x_step}/2 - $bar_s + $x_offset;
+               $t = $t - $self->{x_step}/2 + $bar_s + $x_offset;
+            }
+            else 
+				{
+				   $l = $xp - $self->{x_step}/2 + $bar_s + $x_offset;
+				   $r = $xp + $self->{x_step}/2 - $bar_s + $x_offset;
+				}
 			}
 			else
 			{
-				$l = $xp 
-					- $self->{x_step}/2
-					+ ($j - 1) * $self->{x_step}/$self->{_data}->num_sets()
-					+ $bar_s + $x_offset;
-				$r = $xp 
-					- $self->{x_step}/2
-					+ $j * $self->{x_step}/$self->{_data}->num_sets()
-					- $bar_s + $x_offset;
+            if ($self->{rotate_chart}) {
+					warn "base is $t";
+					$bottom = $t - $self->{x_step}/2 
+					        + ($j) * $self->{x_step}/$self->{_data}->num_sets() 
+					        + $bar_s + $x_offset;
+					$t = $t - $self->{x_step}/2 
+					   + ($j-1) * $self->{x_step}/$self->{_data}->num_sets() 
+					   - $bar_s + $x_offset;
+					warn "top bottom is ($t, $bottom)";
+            }
+            else 
+				{
+					$l = $xp 
+						- $self->{x_step}/2
+						+ ($j - 1) * $self->{x_step}/$self->{_data}->num_sets()
+						+ $bar_s + $x_offset;
+					$r = $xp 
+						- $self->{x_step}/2
+						+ $j * $self->{x_step}/$self->{_data}->num_sets()
+						- $bar_s + $x_offset;
+				}
 			}
 
 			if ($value >= 0) {

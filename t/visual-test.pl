@@ -6,8 +6,10 @@ use Test;
 # The modules we're testing
 use GD::Graph::bars3d;
 use GD::Graph::lines3d;
-use GD::Graph::lines;
 use GD::Graph::pie3d;
+
+use GD::Graph::lines;
+use GD::Graph::bars;
 
 # For version number
 use GD::Graph;
@@ -26,7 +28,7 @@ use ExtUtils::MakeMaker qw( prompt );
 # How many test do we have?
 use vars qw( $test_count $export_format );
 
-BEGIN { $|=1; $test_count = 8; plan test => $test_count; }
+BEGIN { $|=1; $test_count = 9; plan test => $test_count; }
 
 # Get user response whether to run visual test
 # (Would be nice to localize (localise? :-> ) this....
@@ -129,6 +131,32 @@ $graph->set(
 
 ok( compare( $graph->plot( \@data ), 'stackbar.png' ) );
 
+#--------------------------------------------------#
+# 3d bars with x-tick-number set                  #
+#--------------------------------------------------#
+$graph = new GD::Graph::bars();
+
+@data = ( 
+           [ 0 .. 12 ],
+           [ 14,16,19,20,23,25,22,23,22,23,25,27,28],
+);
+$graph->set(
+        title => 'Temperature',
+        x_label => "Time",
+        y_label => "Temperature C",
+        long_ticks=>1,
+        y_max_value=> 30,
+        y_min_value => 0,
+        y_tick_number => 6,
+#        x_tick_number => 12,
+        y_label_skip => 1,
+        x_label_skip => 2,
+        x_max_value=> 12,
+        bar_spacing=> 4,
+        accent_threshold=> 400,
+);
+
+ok( compare( $graph->plot( \@data ), 'bar-ticks.png' ) );
 
 #--------------------------------------------------#
 # Basic 3d line graph                              #
@@ -188,7 +216,7 @@ ok( compare( $graph->plot( \@data ), 'multiline.png' ) );
 #--------------------------------------------------#
 # 3d Lines with x-tick-number set                  #
 #--------------------------------------------------#
-$graph = new GD::Graph::lines3d();
+$graph = new GD::Graph::lines();
 
 @data = ( 
            [ 0 .. 24 ],
@@ -202,7 +230,7 @@ $graph->set(
         y_max_value=> 30,
         y_min_value => 0,
         y_tick_number => 6,
-        x_tick_number => 24,
+#        x_tick_number => 24,
         y_label_skip => 1,
         x_label_skip => 2,
         x_max_value=> 24,

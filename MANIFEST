@@ -4,6 +4,8 @@ lib/GD/Graph/axestype3d.pm
 lib/GD/Graph/bars3d.pm
 lib/GD/Graph/lines3d.pm
 lib/GD/Graph/pie3d.pm
+lib/GD/Graph/cylinder.pm
+lib/GD/Graph/cylinder3d.pm
 Makefile.PL
 MANIFEST
 t/all.t
