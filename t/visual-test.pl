@@ -6,6 +6,7 @@ use Test;
 # The modules we're testing
 use GD::Graph::bars3d;
 use GD::Graph::lines3d;
+use GD::Graph::lines;
 use GD::Graph::pie3d;
 
 # For version number
@@ -25,7 +26,7 @@ use ExtUtils::MakeMaker qw( prompt );
 # How many test do we have?
 use vars qw( $test_count $export_format );
 
-BEGIN { $|=1; $test_count = 7; plan test => $test_count; }
+BEGIN { $|=1; $test_count = 8; plan test => $test_count; }
 
 # Get user response whether to run visual test
 # (Would be nice to localize (localise? :-> ) this....
@@ -185,6 +186,34 @@ $graph->set_legend( 'Subset A', 'Subset B', 'Subset C', 'Subset D', 'Subset E',)
 ok( compare( $graph->plot( \@data ), 'multiline.png' ) );
 
 #--------------------------------------------------#
+# 3d Lines with x-tick-number set                  #
+#--------------------------------------------------#
+$graph = new GD::Graph::lines3d();
+
+@data = ( 
+           [ 0 .. 24 ],
+           [ 14,16,19,20,23,25,22,23,22,23,25,27,28,30,25,23,20,19,17,14,15,16,14,13,11],
+);
+$graph->set(
+        title => 'Temperature',
+        x_label => "Time",
+        y_label => "Temperature C",
+        long_ticks=>1,
+        y_max_value=> 30,
+        y_min_value => 0,
+        y_tick_number => 6,
+        x_tick_number => 24,
+        y_label_skip => 1,
+        x_label_skip => 2,
+        x_max_value=> 24,
+        bar_spacing=> 4,
+        accent_threshold=> 400,
+);
+
+ok( compare( $graph->plot( \@data ), 'line-ticks.png' ) );
+
+
+#--------------------------------------------------#
 # Basic 3d pie graph                               #
 #--------------------------------------------------#
 
@@ -241,12 +270,15 @@ sub compare {
 	($file) = fileparse( $file );
 	$file = File::Spec->catfile( $FindBin::RealBin, $file );
 	# Open the file it should look like
-	open( FILE, $file ) || die "Cannot open $file: $!";
-	my $gd = GD::Image->newFromPng( \*FILE ) || die "Error loading $file: $!\n";
-	close FILE;
-	# See if GD compares them (bypass user part if possible)
-	return 1 unless ($graph->compare( $gd ) & GD_CMP_IMAGE);
-
+	if( open( FILE, $file ) ) {
+		my $gd = GD::Image->newFromPng( \*FILE ) || die "Error loading $file: $!\n";
+		close FILE;
+		# See if GD compares them (bypass user part if possible)
+		return 1 unless ($graph->compare( $gd ) & GD_CMP_IMAGE);
+	} else {
+		warn "Cannot open $file: $!\n";
+	} # end if
+	
 	# The images differ!
 	# So write the image to a file and ask the user if they compare
 	my $f2 = _write( $graph, $file );

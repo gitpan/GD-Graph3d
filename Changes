@@ -2,6 +2,8 @@ Revision history for Perl extension GD-Graph3d.
 
 See individual files for file-specific changes.
 
+0.59  Dec 05 2001
+	- Fixed bug with x_tick_number
 0.58  Dec 05 2001
 	- Added visual tests and note in Makefile.PL
 	- Built test suite in t/

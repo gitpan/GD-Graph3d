@@ -25,7 +25,7 @@ use GD::Graph::utils qw(:all);
 use Carp;
 
 @GD::Graph::pie3d::ISA = qw( GD::Graph::pie );
-$GD::Graph::pie3d::VERSION = '0.58';
+$GD::Graph::pie3d::VERSION = '0.59';
 
 my %Defaults = (
 	'3d'         => 1,

@@ -9,15 +9,16 @@
 #--------------------------------------------------------------------------
 # Date		Modification				                                 Author
 # -------------------------------------------------------------------------
-# 1999SEP18 Created 3D axestype base class (this                        JAW
+# 1999SEP18 Created 3D axestype base class (this                         JW
 #           module) changes noted in comments.
-# 1999OCT15 Fixed to include all GIFgraph functions                     JAW
+# 1999OCT15 Fixed to include all GIFgraph functions                      JW
 #           necessary for PNG support.
-# 2000JAN19 Converted to GD::Graph sublcass                             JAW
-# 2000FEB21 Fixed bug in y-labels' height                               JAW
-# 2000APR18 Updated for compatibility with GD::Graph 1.30               JAW
-# 2000AUG21 Added 3d shading                                            JAW
-# 2000SEP04 Allowed box_clr without box axis                            JAW
+# 2000JAN19 Converted to GD::Graph sublcass                              JW
+# 2000FEB21 Fixed bug in y-labels' height                                JW
+# 2000APR18 Updated for compatibility with GD::Graph 1.30                JW
+# 2000AUG21 Added 3d shading                                             JW
+# 2000SEP04 Allowed box_clr without box axis                             JW
+# 06Dec2001 Fixed bug in rendering of x tick when x_tick_number is set   JW
 #==========================================================================
 # TODO
 #		* Modify to use true 3-d extrusions at any theta and phi
@@ -33,7 +34,7 @@ use GD::Graph::colour qw(:colours);
 use Carp;
 
 @GD::Graph::axestype3d::ISA = qw(GD::Graph::axestype);
-$GD::Graph::axestype3d::VERSION = '0.58';
+$GD::Graph::axestype3d::VERSION = '0.59';
 
 # Commented inheritance from GD::Graph::axestype unless otherwise noted.
 
@@ -223,13 +224,13 @@ sub setup_coords
 
 	# Calculate the 3d-depth of the graph
 	# Note this sets a minimum depth of ~20 pixels
-	if (!defined $self->{x_tick_number}) {
+#	if (!defined $self->{x_tick_number}) {
 		my $depth = _max( $self->{bar_depth}, $self->{line_depth} );
 		if( $self->{overwrite} == 1 ) {
 			$depth *= $self->{_data}->num_sets();
 		} # end if
 	   $self->{depth_3d} = _max( $depth, $self->{depth_3d} );
-	} # end if
+#	} # end if
 
 	$self->SUPER::setup_coords();
 
@@ -608,6 +609,10 @@ sub draw_x_ticks_number
 
 		$y = $self->{bottom} unless $self->{zero_axis_only};
 
+		# Draw on the back of the extrusion
+		$x += $self->{depth_3d};
+		$y -= $self->{depth_3d};
+
 		if ($self->{x_ticks})
 		{
 			if ($self->{x_long_ticks})
@@ -616,8 +621,12 @@ sub draw_x_ticks_number
 				# drawn
 				if ( $self->{x_tick_length} >= 0 ) 
 				{
-					$self->{graph}->line($x, $self->{bottom}, 
-						$x, $self->{top}, $self->{fgci});
+					# Move up by 3d depth
+					$self->{graph}->line( $x,
+					                      $self->{bottom} - $self->{depth_3d}, 
+												 $x, 
+												 $self->{top} - $self->{depth_3d}, 
+												 $self->{fgci});
 				} 
 				else 
 				{
@@ -642,8 +651,8 @@ sub draw_x_ticks_number
 				# Draw conector ticks
 				$self->{graph}->line( $x - $self->{depth_3d}, 
 				                      $y + $self->{depth_3d},
-				                      $x - $self->{depth_3d} + $self->{tick_length}, 
-				                      $y + $self->{depth_3d} - $self->{tick_length},
+				                      $x, - $self->{depth_3d} + $self->{tick_length}, 
+				                      $y, + $self->{depth_3d} - $self->{tick_length},
 				                      $self->{fgci} 
 				);
 			} # end if -- x_long_ticks
